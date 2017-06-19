@@ -1,0 +1,147 @@
+\documentclass{article}
+
+% ===================== preamble =========================
+
+\usepackage[dvips]{graphicx}
+
+\usepackage{xcolor}
+% the deleting line is imported by package ulem
+\usepackage{ulem}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+% new mathematical symbol
+% \newcommand{\dd}{\; \mathrm{d}}
+
+% appendix
+\usepackage[title]{appendix}
+
+% for nomenclature
+\usepackage{ifthen}
+\usepackage{framed}
+\usepackage{multicol}
+\usepackage[noprefix]{nomencl}
+\makenomenclature
+
+% grouped nomenclature
+\renewcommand{\nomgroup}[1]{%
+	\ifthenelse{\equal{#1}{L}}{%
+		\medskip\item[\large\textbf{\textsf{Latin}}]\medskip%
+	}{%
+		\ifthenelse{\equal{#1}{G}}{%
+			\medskip\item[\large\textbf{\textsf{Greek}}]\medskip%
+		}{%
+			\ifthenelse{\equal{#1}{N}}{%
+				\medskip\item[\large\textbf{\textsf{Dimensionless}}]\medskip%
+			}{%
+				\ifthenelse{\equal{#1}{B}}{%
+					\medskip\item[\large\textbf{\textsf{Matrix and vector}}]\medskip%
+				}{}
+			}
+		}
+	}
+}
+
+% set the line spacing of nomenclature
+\setlength{\nomitemsep}{-\parsep}
+
+\renewcommand*\nompreamble{\begin{multicols}{2}}
+\renewcommand*\nompostamble{\end{multicols}}
+
+\newcommand{\revised}[1]{\textcolor{blue}{#1}}
+\newcommand{\deleted}[1]{\textcolor{red}{\sout{#1}}}
+
+\newcommand{\dd}{\: \mathrm{d}}
+\newcommand{\parpar}[2]{\frac{\partial {#1}}{\partial {#2}}}
+\newcommand{\parpard}[2]{ \frac{\partial^2 {#1}}{\partial {#2}^2} }
+
+\newcommand{\inbrace}[1]{\left\{ #1 \right\}}
+\newcommand{\inbracesmall}[1]{\{ #1 \}}
+\newcommand{\inbracket}[1]{\left[ #1 \right]}
+
+\newcommand{\myeqref}[1]{Eq.~\eqref{#1}}
+\newcommand{\myfigref}[1]{Fig.~\ref{#1}}
+\newcommand{\mytabref}[1]{Table.~\ref{#1}}
+
+\title{The Title}
+
+% first author, myself
+\author{Y.Y.~Hu}
+
+% =================== end of preamble ====================
+
+% ===================== document =========================
+%
+% Created: Jun. 19th, 2017 @ SJTU
+%
+% ========================================================
+
+\begin{document}
+
+% ==============================
+% == main body of the article ==
+% ==============================
+
+\maketitle
+
+\section{Introduction}
+
+The Introduction. 
+
+\section{The second section title}
+\subsection{Subsection}
+Fig.~\ref{fig:Coordinates}, Eq.~\eqref{eq:OriginalEnery}.
+\begin{align} \label{eq:OriginalEnery}
+	& \rho c \left( \frac{\partial T}{\partial t} + u\frac{\partial T}{\partial x} + v\frac{\partial T}{\partial y} + w\frac{\partial T}{\partial z} \right) = k_f \frac{\partial^2 T}{\partial z^2} \nonumber \\
+	&+ \eta\left( \left(\frac{\partial u}{\partial z}\right)^2 + \left( \frac{\partial v}{\partial z} \right)^2 \right)
+\end{align}
+Where $c$, $k_f$ and $\eta$ are the specific heat, thermal conductivity and dynamic viscosity of the lubricant, respectively. Eq.~\eqref{eq:OriginalEnery} describes the temperature distribution. 
+
+% == acknowledgment ==
+\section*{Acknowledgements}
+The acknowledgements.
+
+% == bibliography ==
+%\section*{References}
+\bibliographystyle{model3-num-names}
+\bibliography{TheBBLFile}
+
+% == appendix ==
+\numberwithin{equation}{section}
+\begin{appendices}
+
+\section{Some symbols used in this article}
+
+\end{appendices}
+
+
+% ==================== figures ================================
+
+% \begin{figure}[htb]
+% 	\centering
+% 	\includegraphics[width=0.95\linewidth]{FIG01}
+% 	\caption{Coordinate system}
+% 	\label{fig:Coordinates}
+% \end{figure}
+
+% ====================== tables ===================
+
+\begin{table}[!hbtp]
+	\caption[Table of parameters]{The parameters of the bearing model}
+	\begin{center}
+	\begin{tabular}{l l}
+		\hline
+		\textbf{Description} & \textbf{Quantity} \\
+		\hline
+		\textbf{Geometry} & \\
+		Outer radius, $r_2$ (m) & 0.45 \\
+		\\
+		\textbf{Operation Conditions} & \\
+		Rotational speed (rpm) & 1780 \\
+		\hline
+	\end{tabular}
+	\end{center}
+\end{table}
+
+\end{document}

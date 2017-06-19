@@ -1,1 +1,7 @@
 *.bdat
+Doc/*.pdf
+Doc/*.dvi
+Doc/*.nlo
+Doc/*.aux
+Doc/*.blg
+Doc/*.log
