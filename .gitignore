@@ -1,7 +1,8 @@
 *.bdat
-Doc/*.pdf
-Doc/*.dvi
-Doc/*.nlo
-Doc/*.aux
-Doc/*.blg
-Doc/*.log
+Doc/ANN/*.aux
+Doc/ANN/*.bbl
+Doc/ANN/*.blg
+Doc/ANN/*.dvi
+Doc/ANN/*.log
+Doc/ANN/*.nlo
+Doc/ANN/*.pdf
