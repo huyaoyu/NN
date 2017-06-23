@@ -2,7 +2,8 @@
 
 % ===================== preamble =========================
 
-\usepackage[dvips]{graphicx}
+% \usepackage[dvips]{graphicx}
+\usepackage{graphicx}
 
 \usepackage{xcolor}
 % the deleting line is imported by package ulem
@@ -64,7 +65,7 @@
 \newcommand{\myfigref}[1]{Fig.~\ref{#1}}
 \newcommand{\mytabref}[1]{Table.~\ref{#1}}
 
-\title{The Title}
+\title{Notes on Fully Connected Artificial Neural Network}
 
 % first author, myself
 \author{Y.Y.~Hu}
@@ -87,16 +88,19 @@
 
 \section{Introduction}
 
-The Introduction. 
+This document contains the notes on fully connected artificial neural network.
 
-\section{The second section title}
-\subsection{Subsection}
-Fig.~\ref{fig:Coordinates}, Eq.~\eqref{eq:OriginalEnery}.
-\begin{align} \label{eq:OriginalEnery}
-	& \rho c \left( \frac{\partial T}{\partial t} + u\frac{\partial T}{\partial x} + v\frac{\partial T}{\partial y} + w\frac{\partial T}{\partial z} \right) = k_f \frac{\partial^2 T}{\partial z^2} \nonumber \\
-	&+ \eta\left( \left(\frac{\partial u}{\partial z}\right)^2 + \left( \frac{\partial v}{\partial z} \right)^2 \right)
-\end{align}
-Where $c$, $k_f$ and $\eta$ are the specific heat, thermal conductivity and dynamic viscosity of the lubricant, respectively. Eq.~\eqref{eq:OriginalEnery} describes the temperature distribution. 
+\section{Definitions}
+\subsection{Fully connected artificial neural network}
+Fig.~\ref{fig:Coordinates} illustrates two successive pair of layers.
+
+\begin{figure}[!htb]
+	\centering
+	% \includegraphics[width=0.95\linewidth,natwidth=610,natheight=642]{FCANN-TwoLayers.png}
+	\includegraphics[width=0.95\linewidth]{FCANN-TwoLayers.png}
+	\caption{Coordinate system}
+	\label{fig:Coordinates}
+\end{figure}
 
 % == acknowledgment ==
 \section*{Acknowledgements}
@@ -105,7 +109,7 @@ The acknowledgements.
 % == bibliography ==
 %\section*{References}
 \bibliographystyle{model3-num-names}
-\bibliography{TheBBLFile}
+\bibliography{Manuscript}
 
 % == appendix ==
 \numberwithin{equation}{section}

@@ -1,6 +1,7 @@
 #!/bin/sh
 
-TEX_COMMAND=latex
+# TEX_COMMAND=latex
+TEX_COMMAND=xelatex
 
 echo "****************** compile phase 1 ******************"
 echo " "
