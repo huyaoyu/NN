@@ -196,16 +196,26 @@ def get_gradient(wList, bList, yList, Y):
 
 def correct_by_gradient(mList, gradList, alpha):
 	"""
-	Correct every element of mList by grad and alpah.
+	Correct every element of mList by grad and learning rate alpha.
 	mList contains the parameters.
 	gradList contains the gradients.
-	alpha is the under-relaxation factor. Should be in 0.0 - 1.0.
+	alpha is the learning rate factor. Should be positive.
 
 	For an element m in mList and associated gradient element g in gradList,
 
-	m = m + alpha * g
+	m = m - alpha * g
 
 	"""
+
+	n = len(mList)
+
+	for i in range(n):
+		m = mList[i]
+		g = gradList[i]
+
+		m = m - alpha * g
+
+		mList[i] = m
 
 def test_get_gradient():
 	"""
@@ -304,6 +314,10 @@ def test_get_gradient():
 
 def main():
 	"""The main function."""
+
+	# The learning rate.
+	alpha = 0.001
+
 	# Collection of parameters.
 
 	(wList, bList) = get_random_w_b(nNL, 0.2, -0.1, 0.1)
@@ -317,7 +331,7 @@ def main():
 
 		loss = loss_func(y_input, neList[-1])
 
-		print("x = %e, y = %e, loss = %e" % (dataX[i], dataY[i], loss))
+		print("x = %e, y = %e, Y = %e, loss = %e" % (dataX[i], dataY[i], y_input, loss))
 
 		# Gradient calculation.
 
@@ -325,15 +339,18 @@ def main():
 
 		# Backscatter prapogation.
 
+		correct_by_gradient(wList, grad_w, alpha)
+		correct_by_gradient(bList, grad_b, alpha)
+
 if __name__ == '__main__':
 
 	# Run the main function.
 
-	# main()
+	main()
 
 	# Run the test.
 
-	test_get_gradient()
+	# test_get_gradient()
 
 		
 
