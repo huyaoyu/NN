@@ -12,7 +12,6 @@ dataY = np.sin(dataX)
 nX = dataX.shape[0]
 
 nNL     = [1, 10, 5, 1]  # Number of neurons per every hiden layer.
-nLayers = len(nNL)
 
 class ANNEx(Exception):
 	"""Base exception class."""
@@ -24,6 +23,63 @@ class ArgumentEx(ANNEx):
 	"""Argument exception."""
 	def __init__(self, message):
 		super(ArgumentEx, self).__init__(message)
+
+def get_random_w_b(nNL, wSpan, wStart, b):
+	"""
+	Create two lists that contain the w and b.
+	The values of w are random.
+	The values of b are fixed by b.
+	"""
+
+	nLayers = len(nNL)
+
+	wList = []
+	bList = []
+
+	for i in range(nLayers-1):
+		tempW = np.random.rand(nNL[i], nNL[i+1]) * wSpan + wStart
+		tempB = np.ones((nNL[i+1], 1)) * b
+
+		wList.append(tempW)
+		bList.append(tempB)
+
+	return wList, bList
+
+def get_fixed_w_b(nNL, w, b):
+	"""
+	Create two lists that contain the w and b.
+	The values of w and b are fixed by arguments w and b.
+	"""
+
+	nLayers = len(nNL)
+
+	wList = []
+	bList = []
+
+	for i in range(nLayers - 1):
+		tempW = np.ones((nNL[i], nNL[i+1])) * w
+		tempB = np.ones((nNL[i+1], 1)) * b
+
+		wList.append(tempW)
+		bList.append(tempB)
+
+	return wList, bList
+
+def duplicate_list_of_numpy_elements(fList):
+	"""
+	Duplicate a list of numpy elements.
+	"""
+
+	temp = []
+
+	nElements = len(fList)
+
+	for e in fList:
+		tempE = np.array(e, copy=True)
+
+		temp.append(tempE)
+
+	return temp
 
 def ReLU(x):
 	"""Activation function."""
@@ -106,7 +162,7 @@ def get_gradient(wList, bList, yList, Y):
 		raise ANNEx("Argument error.")
 
 	# The empty graient list.
-	grad_x = []
+	grad_x = [] # This will have an extra element than grad_w and grrad_b.
 	grad_w = []
 	grad_b = []
 
@@ -119,7 +175,7 @@ def get_gradient(wList, bList, yList, Y):
 
 		x = yList[j-1]
 		y = yList[j]
-		
+
 		w = wList[idx]
 		b = bList[idx]
 
@@ -136,26 +192,121 @@ def get_gradient(wList, bList, yList, Y):
 
 		pLpy = pLpx
 
-	return grad_w, grad_b, grad_x
+	return grad_w[::-1], grad_b[::-1], grad_x[::-1]
 
-if __name__ == '__main__':
+def correct_by_gradient(mList, gradList, alpha):
+	"""
+	Correct every element of mList by grad and alpah.
+	mList contains the parameters.
+	gradList contains the gradients.
+	alpha is the under-relaxation factor. Should be in 0.0 - 1.0.
 
+	For an element m in mList and associated gradient element g in gradList,
+
+	m = m + alpha * g
+
+	"""
+
+def test_get_gradient():
+	"""
+	Test the function get_gradient().
+	"""
+
+	x = np.array(1.0).reshape(1, 1)
+	Y = np.array(1.0).reshape(1, 1) # The expected Y value.
+
+	w_ori = 1.0
+	w_new = 1.01
+
+	b_ori = 1.0
+	b_new = 1.01
+
+	# Get wList and bList with fixed values.
+	(wList, bList) = get_fixed_w_b(nNL, w_ori, b_ori)
+
+	# Feed forward.
+	yList = FF(x, wList, bList)
+
+	# Get loss.
+	L0 = loss_func(Y, yList[-1])
+
+	# Get gradients.
+	(grad_w, grad_b, grad_x) = get_gradient(wList, bList, yList, Y)
+
+	# ====== Start looping for every w value. ==========
+
+	# Get the number of layers.
+	nLayers = len(nNL)
+
+	print("\n=========== Test of w. ===========\n")
+
+	for k in range(nLayers-1):
+		# Get the value fo M and N of the current layer or neural network.
+		(M, N) = wList[k].shape
+
+		print("Layer %d, M = %d, N = %d:" % (k, M, N))
+
+		for i in range(M):
+			for j in range(N):
+				# Make a copy of wList.
+				wListDup = duplicate_list_of_numpy_elements(wList)
+
+				# Modify w a little bit.
+				wListDup[k][i][j] = w_new
+
+				# Feed forward again.
+				yList = FF(x, wListDup, bList)
+
+				# Get loss.
+				L1 = loss_func(Y, yList[-1])
+
+				# Calculate the approximate gradient.
+				grad_w_app_single = ( L1 - L0 ) / (w_new - w_ori)
+
+				# Shwo information.
+				print("Layer %d, m = %d, n = %d, g0 = %e, g1 = %e, rel_diff = %e." % (k, i, j, grad_w[k][i][j], grad_w_app_single, (grad_w[k][i][j] - grad_w_app_single) / grad_w_app_single ))
+
+	# ====== End of looping for every w value. =========
+
+	# ====== Start looping for every b value. ==========
+
+	print("\n=========== Test of b. ===========\n")
+
+	for k in range(nLayers-1):
+		# Get the value fo M and N of the current layer or neural network.
+		(M, N) = wList[k].shape
+
+		print("Layer %d, N = %d:" % (k, N))
+
+		for j in range(N):
+			# Make a copy of wList.
+			bListDup = duplicate_list_of_numpy_elements(bList)
+
+			# Modify w a little bit.
+			bListDup[k][j][0] = b_new
+
+			# Feed forward again.
+			yList = FF(x, wList, bListDup)
+
+			# Get loss.
+			L1 = loss_func(Y, yList[-1])
+
+			# Calculate the approximate gradient.
+			grad_b_app_single = ( L1 - L0 ) / (b_new - b_ori)
+
+			# Shwo information.
+			print("Layer %d, n = %d, g0 = %e, g1 = %e, rel_diff = %e." % (k, j, grad_b[k][j][0], grad_b_app_single, (grad_b[k][j][0] - grad_b_app_single) / grad_b_app_single ))
+
+	# ====== End of looping for every b value. =========
+
+	print("")
+	print("Test done.\n")
+
+def main():
+	"""The main function."""
 	# Collection of parameters.
 
-	wSpan  = 0.2
-	wStart = -0.1
-
-	wList = []
-	bList = []
-
-	for i in range(nLayers-1):
-		tempW = np.random.rand(nNL[i], nNL[i+1]) * wSpan + wStart
-		tempB = np.ones((nNL[i+1], 1)) * 0.1
-		# tempW = np.ones((nNL[i], nNL[i+1]))
-		# tempB = np.ones((nNL[i+1], 1)) * 1.0
-
-		wList.append(tempW)
-		bList.append(tempB)	
+	(wList, bList) = get_random_w_b(nNL, 0.2, -0.1, 0.1)
 
 	for i in range(nX):
 		# Feed forward.
@@ -168,7 +319,21 @@ if __name__ == '__main__':
 
 		print("x = %e, y = %e, loss = %e" % (dataX[i], dataY[i], loss))
 
+		# Gradient calculation.
+
+		(grad_w, grad_b, grad_x) = get_gradient(wList, bList, neList, y_input)
+
 		# Backscatter prapogation.
+
+if __name__ == '__main__':
+
+	# Run the main function.
+
+	# main()
+
+	# Run the test.
+
+	test_get_gradient()
 
 		
 
