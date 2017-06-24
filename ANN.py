@@ -11,14 +11,14 @@ dataY = np.sin(dataX)
 
 nX = dataX.shape[0]
 
-nNL     = [1, 10, 5, 1]  # Number of neurons per every hiden layer.
+nNL     = [1, 10, 10, 1]  # Number of neurons per every hiden layer.
 
 class ANNEx(Exception):
 	"""Base exception class."""
 	def __init__(self, message):
 		super(ANNEx, self).__init__()
 		self.message = message
-		
+
 class ArgumentEx(ANNEx):
 	"""Argument exception."""
 	def __init__(self, message):
@@ -68,7 +68,7 @@ class ReLU(ActivationFunc):
 class Act_tanh(ActivationFunc):
 	"""docstring for Sigmoid"""
 	def __init__(self):
-		super(Act_tanh, self).__init__("Sigmoid")
+		super(Act_tanh, self).__init__("Act_tanh")
 
 	def apply(self, g):
 		"""Sigmoid."""
@@ -79,7 +79,22 @@ class Act_tanh(ActivationFunc):
 		"""Derivative of Sigmoid function."""
 
 		return 1.0 - y * y
-		
+
+class Act_dummy(ActivationFunc):
+	"""docstring for Act_dummy"""
+	def __init__(self):
+		super(Act_dummy, self).__init__("Dummy")
+
+	def apply(self, g):
+		"""Dummy function."""
+
+		return g		
+	
+	def derivative(self, y):
+		"""Dummy function."""
+
+		return np.array(1.0).reshape(1, 1)
+
 def get_random_w_b(nNL, wSpan, wStart, b):
 	"""
 	Create two lists that contain the w and b.
@@ -230,7 +245,7 @@ def get_gradient(wList, bList, yList, Y, actFunc, actFuncFinal):
 		w = wList[idx]
 		b = bList[idx]
 
-		if j == 1:
+		if j == J:
 			pypg = get_pypg_final(y, actFuncFinal)
 		else:
 			pypg = get_pypg(y, actFunc)
@@ -292,10 +307,10 @@ def test_get_gradient():
 	(wList, bList) = get_fixed_w_b(nNL, w_ori, b_ori)
 
 	# Activation functions.
-	# actFunc      = ReLU()
-	# actFuncFinal = ReLU()
-	actFunc      = Act_tanh()
-	actFuncFinal = Act_tanh()
+	actFunc      = ReLU()
+	actFuncFinal = ReLU()
+	# actFunc      = Act_tanh()
+	# actFuncFinal = Act_tanh()
 
 	# Feed forward.
 	yList = FF(x, wList, bList, actFunc, actFuncFinal)
@@ -379,30 +394,40 @@ def main():
 	"""The main function."""
 
 	# The learning rate.
-	alpha = 0.0001
+	alpha = 0.01
 
 	# Collection of parameters.
 
-	(wList, bList) = get_random_w_b(nNL, 0.2, -0.1, 0.1)
+	(wList, bList) = get_random_w_b(nNL, 0.05, -0.025, 0.001)
 
 	# Activation functons.
+	# actFunc      = ReLU()
+	# actFuncFinal = ReLU()
 	actFunc      = ReLU()
-	actFuncFinal = ReLU()
+	actFuncFinal = Act_dummy()
 
-	learningLoops = 10
+	learningLoops = 100
 
 	for j in range(learningLoops):
 		print("========== LP = %d. ===============\n" % (j))
+
+		# randIdx = np.random.permutation(len(dataX))
+		# dataX_r = dataX[randIdx]
+		# dataY_r = dataY[randIdx]
+
+		dataX_r = dataX
+		dataY_r = dataY
+
 		for i in range(nX):
 			# Feed forward.
-			x_input = np.array(dataX[i]).reshape(nNL[ 0], 1)
-			y_input = np.array(dataY[i]).reshape(nNL[-1], 1)
+			x_input = np.array(dataX_r[i]).reshape(nNL[ 0], 1)
+			y_input = np.array(dataY_r[i]).reshape(nNL[-1], 1)
 
 			neList = FF(x_input, wList, bList, actFunc, actFuncFinal)
 
 			loss = loss_func(y_input, neList[-1])
 
-			print("x = %e, y = %e, Y = %e, loss = %e" % (dataX[i], neList[-1][0][0], y_input, loss))
+			print("LL %4d, No. %4d, x = %+e, y = %+e, Y = %+e, n_loss = %+e" % (j, i, dataX_r[i], neList[-1][0][0], y_input, loss / dataY_r[i]))
 
 			# Gradient calculation.
 
@@ -418,7 +443,7 @@ def main():
 	x = np.array(0.5).reshape(nNL[ 0], 1)
 	Y = np.array(math.sin(0.5)).reshape(nNL[-1], 1)
 
-	yList = FF(x, wList, bList)
+	yList = FF(x, wList, bList, actFunc, actFuncFinal)
 
 	print("Test.")
 
@@ -428,11 +453,11 @@ if __name__ == '__main__':
 
 	# Run the main function.
 
-	# main()
+	main()
 
 	# Run the test.
 
-	test_get_gradient()
+	# test_get_gradient()
 
 		
 
