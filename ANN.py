@@ -11,7 +11,7 @@ dataY = np.sin(dataX)
 
 nX = dataX.shape[0]
 
-nNL     = [1, 10, 10, 1]  # Number of neurons per every hiden layer.
+nNL     = [1, 5, 5, 5, 1]  # Number of neurons per every hiden layer.
 
 class ANNEx(Exception):
 	"""Base exception class."""
@@ -181,7 +181,11 @@ def loss_func(y0, y1):
 
 	diff = y0 - y1
 
-	return 0.5 * np.transpose(diff).dot(diff)
+	loss = 0.5 * np.transpose(diff).dot(diff)
+
+	loss2 = np.sqrt(np.transpose(diff).dot(diff))
+
+	return loss, loss2
 
 def get_pypg(y, actFunc):
 	"""
@@ -394,11 +398,11 @@ def main():
 	"""The main function."""
 
 	# The learning rate.
-	alpha = 0.01
+	alpha = 0.02
 
 	# Collection of parameters.
 
-	(wList, bList) = get_random_w_b(nNL, 0.05, -0.025, 0.001)
+	(wList, bList) = get_random_w_b(nNL, 0.1, -0.05, 0.01)
 
 	# Activation functons.
 	# actFunc      = ReLU()
@@ -406,17 +410,17 @@ def main():
 	actFunc      = ReLU()
 	actFuncFinal = Act_dummy()
 
-	learningLoops = 100
+	learningLoops = 200
 
 	for j in range(learningLoops):
 		print("========== LP = %d. ===============\n" % (j))
 
-		# randIdx = np.random.permutation(len(dataX))
-		# dataX_r = dataX[randIdx]
-		# dataY_r = dataY[randIdx]
+		randIdx = np.random.permutation(len(dataX))
+		dataX_r = dataX[randIdx]
+		dataY_r = dataY[randIdx]
 
-		dataX_r = dataX
-		dataY_r = dataY
+		# dataX_r = dataX
+		# dataY_r = dataY
 
 		for i in range(nX):
 			# Feed forward.
@@ -425,9 +429,9 @@ def main():
 
 			neList = FF(x_input, wList, bList, actFunc, actFuncFinal)
 
-			loss = loss_func(y_input, neList[-1])
+			(loss, loss2) = loss_func(y_input, neList[-1])
 
-			print("LL %4d, No. %4d, x = %+e, y = %+e, Y = %+e, n_loss = %+e" % (j, i, dataX_r[i], neList[-1][0][0], y_input, loss / dataY_r[i]))
+			print("LL %4d, No. %4d, x = %+e, y = %+e, Y = %+e, n_loss = %+e" % (j, i, dataX_r[i], neList[-1][0][0], y_input, loss2 / dataY_r[i]))
 
 			# Gradient calculation.
 
