@@ -11,7 +11,8 @@ dataY = np.sin(dataX)
 
 nX = dataX.shape[0]
 
-nNL     = [1, 5, 10, 5, 1]  # Number of neurons per every hiden layer.
+nNL     = [1, 10, 10, 1]  # Number of neurons per every hiden layer.
+# display = False
 
 class ANNEx(Exception):
 	"""Base exception class."""
@@ -181,11 +182,7 @@ def loss_func(y0, y1):
 
 	diff = y0 - y1
 
-	loss = 0.5 * np.transpose(diff).dot(diff)
-
-	loss2 = np.sqrt(np.transpose(diff).dot(diff))
-
-	return loss, loss2
+	return 0.5 * np.transpose(diff).dot(diff)
 
 def get_pypg(y, actFunc):
 	"""
@@ -205,10 +202,13 @@ def get_pLpg(pLpy, pypg):
 	"""
 	Calculate partial L / partial g.
 	"""
+	# global display
 	if pLpy.shape[0] != pypg.shape[0]:
 		print("pLpg: Dimensions of pLpy and pypg do not match.\npLpy.shape[0] = %d, pypg.shape[0] = %d\n" % ( pLpy.shape[0], pypg.shape[0] ) )
 		raise ANNEx("Argument error.")
-
+	# if display:
+	# 	print '  -- pLpy: ', pLpy.T
+	# 	print '  -- pypg: ', pypg.T
 	temp = pLpy * pypg
 
 	return temp
@@ -398,11 +398,11 @@ def main():
 	"""The main function."""
 
 	# The learning rate.
-	alpha = 0.02
-
 	# Collection of parameters.
+	# global display
+	np.random.seed(7)
 
-	(wList, bList) = get_random_w_b(nNL, 0.1, -0.05, 0.01)
+	(wList, bList) = get_random_w_b(nNL, 0.05, -0.025, 0.0001)
 
 	# Activation functons.
 	# actFunc      = ReLU()
@@ -410,8 +410,10 @@ def main():
 	actFunc      = ReLU()
 	actFuncFinal = Act_dummy()
 
-	learningLoops = 500
+	alpha = 0.01
 
+	learningLoops = 100
+	lossplot = []
 	for j in range(learningLoops):
 		print("========== LP = %d. ===============\n" % (j))
 
@@ -421,17 +423,26 @@ def main():
 
 		# dataX_r = dataX
 		# dataY_r = dataY
-
+		running_loss=0
 		for i in range(nX):
+			# if j==9 and i>700:
+			# 	display=True
+				# print '!!!'
 			# Feed forward.
 			x_input = np.array(dataX_r[i]).reshape(nNL[ 0], 1)
 			y_input = np.array(dataY_r[i]).reshape(nNL[-1], 1)
 
 			neList = FF(x_input, wList, bList, actFunc, actFuncFinal)
 
-			(loss, loss2) = loss_func(y_input, neList[-1])
+			loss = loss_func(y_input, neList[-1])
 
-			print("LL %4d, No. %4d, x = %+e, y = %+e, Y = %+e, n_loss = %+e" % (j, i, dataX_r[i], neList[-1][0][0], y_input, loss2 / dataY_r[i]))
+			# print("LL %4d, No. %4d, x = %+e, y = %+e, Y = %+e, n_loss = %+e" % (j, i, dataX_r[i], neList[-1][0][0], y_input, loss / dataY_r[i]))
+			running_loss += loss
+			if i % 20 == 19:    # print every 20 mini-batches
+				print('[%d, %5d] loss: %.5f' %
+				(j + 1, i + 1, running_loss / 20))
+				lossplot.append(running_loss / 20)
+				running_loss = 0.0
 
 			# Gradient calculation.
 
@@ -442,12 +453,20 @@ def main():
 			correct_by_gradient(wList, grad_w, alpha)
 			correct_by_gradient(bList, grad_b, alpha)
 
+	import matplotlib.pyplot as plt
+	lossplot = np.array(lossplot)
+	lossplot = lossplot.reshape((-1,2))
+	lossplot = lossplot.mean(axis=1)
+	plt.plot(lossplot)
+	plt.show()
+
 	# Test.
 
 	x = np.array(0.5).reshape(nNL[ 0], 1)
 	Y = np.array(math.sin(0.5)).reshape(nNL[-1], 1)
 
 	yList = FF(x, wList, bList, actFunc, actFuncFinal)
+
 
 	print("Test.")
 
@@ -464,7 +483,3 @@ if __name__ == '__main__':
 	# test_get_gradient()
 
 		
-
-
-
-
