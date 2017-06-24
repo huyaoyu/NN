@@ -9,8 +9,6 @@ import math
 dataX = np.linspace(0, 2*3.14, 1000)
 dataY = np.sin(dataX)
 
-nX = dataX.shape[0]
-
 nNL     = [1, 10, 10, 1]  # Number of neurons per every hiden layer.
 # display = False
 
@@ -182,7 +180,9 @@ def loss_func(y0, y1):
 
 	diff = y0 - y1
 
-	return 0.5 * np.transpose(diff).dot(diff)
+	dp = np.transpose(diff).dot(diff)
+
+	return 0.5 * dp, np.sqrt(dp)
 
 def get_pypg(y, actFunc):
 	"""
@@ -397,12 +397,14 @@ def test_get_gradient():
 def main():
 	"""The main function."""
 
+	nX = dataX.shape[0]
+
 	# The learning rate.
 	# Collection of parameters.
 	# global display
 	np.random.seed(7)
 
-	(wList, bList) = get_random_w_b(nNL, 0.05, -0.025, 0.0001)
+	(wList, bList) = get_random_w_b(nNL, 0.1, -0.05, 0.0001)
 
 	# Activation functons.
 	# actFunc      = ReLU()
@@ -412,7 +414,7 @@ def main():
 
 	alpha = 0.01
 
-	learningLoops = 100
+	learningLoops = 500
 	lossplot = []
 	for j in range(learningLoops):
 		print("========== LP = %d. ===============\n" % (j))
@@ -434,10 +436,10 @@ def main():
 
 			neList = FF(x_input, wList, bList, actFunc, actFuncFinal)
 
-			loss = loss_func(y_input, neList[-1])
+			(loss, loss2) = loss_func(y_input, neList[-1])
 
 			# print("LL %4d, No. %4d, x = %+e, y = %+e, Y = %+e, n_loss = %+e" % (j, i, dataX_r[i], neList[-1][0][0], y_input, loss / dataY_r[i]))
-			running_loss += loss
+			running_loss += loss2
 			if i % 20 == 19:    # print every 20 mini-batches
 				print('[%d, %5d] loss: %.5f' %
 				(j + 1, i + 1, running_loss / 20))
