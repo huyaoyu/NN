@@ -24,6 +24,62 @@ class ArgumentEx(ANNEx):
 	def __init__(self, message):
 		super(ArgumentEx, self).__init__(message)
 
+class ActivationFunc(object):
+	"""docstring for ActivationFunc"""
+	def __init__(self, name):
+		super(ActivationFunc, self).__init__()
+
+		self.name = name
+
+	def apply(self, g):
+		"""Apply this activation function."""
+
+		return g
+
+	def derivative(self, y):
+		"""pass"""
+
+		return y
+
+class ReLU(ActivationFunc):
+	"""docstring for ReLU"""
+	def __init__(self):
+		super(ReLU, self).__init__("Sigmoid")
+		
+		
+	def apply(self, g):
+		"""ReLU"""
+
+		y = g.copy()
+
+		y[y<0.0] = 0.0
+
+		return y
+
+	def derivative(self, y):
+		"""Derivative of ReLU."""
+
+		temp = np.empty_like(y) # All the values are zero.
+
+		temp[y > 0] = 1.0
+
+		return temp
+
+class Act_tanh(ActivationFunc):
+	"""docstring for Sigmoid"""
+	def __init__(self):
+		super(Act_tanh, self).__init__("Sigmoid")
+
+	def apply(self, g):
+		"""Sigmoid."""
+
+		return np.tanh(g)
+
+	def derivative(self, y):
+		"""Derivative of Sigmoid function."""
+
+		return 1.0 - y * y
+		
 def get_random_w_b(nNL, wSpan, wStart, b):
 	"""
 	Create two lists that contain the w and b.
@@ -81,16 +137,7 @@ def duplicate_list_of_numpy_elements(fList):
 
 	return temp
 
-def ReLU(x):
-	"""Activation function."""
-
-	y = x.copy()
-
-	y[y<0.0] = 0.0
-
-	return y
-
-def FF(x, w, b):
+def FF(x, w, b, actFunc, actFuncFinal):
 	"""Feed forward."""
 
 	nW = len(w)
@@ -98,11 +145,15 @@ def FF(x, w, b):
 	y = [x]
 
 	tempInput = x
+
 	for i in range(nW):
 		wT = np.transpose(w[i])
 		tempY = np.matmul(wT, tempInput) + b[i]
 
-		tempY = ReLU(tempY)
+		if i == nW - 1:
+			tempY = actFuncFinal.apply(tempY)
+		else:
+			tempY = actFunc.apply(tempY)
 
 		y.append(tempY)
 
@@ -117,19 +168,19 @@ def loss_func(y0, y1):
 
 	return 0.5 * np.transpose(diff).dot(diff)
 
-def get_pypg(y):
+def get_pypg(y, actFunc):
 	"""
 	Calculate partial y / partial g.
 	"""
-	temp = np.empty_like(y)
 
-	for i in range(y.shape[0]):
-		if y[i] >= 0 :
-			temp[i] = 1.0
-		else:
-			temp[i] = 0.0
+	return actFunc.derivative(y)
 
-	return temp
+def get_pypg_final(y, actFunc):
+	"""
+	Calculate partial y / partial g for the final ouput.
+	"""
+
+	return actFunc.derivative(y)
 
 def get_pLpg(pLpy, pypg):
 	"""
@@ -143,7 +194,7 @@ def get_pLpg(pLpy, pypg):
 
 	return temp
 
-def get_gradient(wList, bList, yList, Y):
+def get_gradient(wList, bList, yList, Y, actFunc, actFuncFinal):
 	"""
 	The number of pairs of neural networks is J.
 	wList, bList both have J elements.
@@ -179,7 +230,11 @@ def get_gradient(wList, bList, yList, Y):
 		w = wList[idx]
 		b = bList[idx]
 
-		pypg = get_pypg(y)
+		if j == 1:
+			pypg = get_pypg_final(y, actFuncFinal)
+		else:
+			pypg = get_pypg(y, actFunc)
+
 		pLpg = get_pLpg(pLpy, pypg)
 
 		pLpw = np.matmul(x, pLpg.transpose())
@@ -225,23 +280,31 @@ def test_get_gradient():
 	x = np.array(1.0).reshape(1, 1)
 	Y = np.array(1.0).reshape(1, 1) # The expected Y value.
 
-	w_ori = 1.0
-	w_new = 1.01
-
-	b_ori = 1.0
-	b_new = 1.01
+	w_ori   = 2.0
+	w_delta = 0.01
+	w_new   = w_ori + w_delta
+	
+	b_ori   = 1.0
+	b_delta = 0.01
+	b_new   = b_ori + b_delta
 
 	# Get wList and bList with fixed values.
 	(wList, bList) = get_fixed_w_b(nNL, w_ori, b_ori)
 
+	# Activation functions.
+	# actFunc      = ReLU()
+	# actFuncFinal = ReLU()
+	actFunc      = Act_tanh()
+	actFuncFinal = Act_tanh()
+
 	# Feed forward.
-	yList = FF(x, wList, bList)
+	yList = FF(x, wList, bList, actFunc, actFuncFinal)
 
 	# Get loss.
 	L0 = loss_func(Y, yList[-1])
 
 	# Get gradients.
-	(grad_w, grad_b, grad_x) = get_gradient(wList, bList, yList, Y)
+	(grad_w, grad_b, grad_x) = get_gradient(wList, bList, yList, Y, actFunc, actFuncFinal)
 
 	# ====== Start looping for every w value. ==========
 
@@ -265,13 +328,13 @@ def test_get_gradient():
 				wListDup[k][i][j] = w_new
 
 				# Feed forward again.
-				yList = FF(x, wListDup, bList)
+				yList = FF(x, wListDup, bList, actFunc, actFuncFinal)
 
 				# Get loss.
 				L1 = loss_func(Y, yList[-1])
 
 				# Calculate the approximate gradient.
-				grad_w_app_single = ( L1 - L0 ) / (w_new - w_ori)
+				grad_w_app_single = ( L1 - L0 ) / w_delta
 
 				# Shwo information.
 				print("Layer %d, m = %d, n = %d, g0 = %e, g1 = %e, rel_diff = %e." % (k, i, j, grad_w[k][i][j], grad_w_app_single, (grad_w[k][i][j] - grad_w_app_single) / grad_w_app_single ))
@@ -296,13 +359,13 @@ def test_get_gradient():
 			bListDup[k][j][0] = b_new
 
 			# Feed forward again.
-			yList = FF(x, wList, bListDup)
+			yList = FF(x, wList, bListDup, actFunc, actFuncFinal)
 
 			# Get loss.
 			L1 = loss_func(Y, yList[-1])
 
 			# Calculate the approximate gradient.
-			grad_b_app_single = ( L1 - L0 ) / (b_new - b_ori)
+			grad_b_app_single = ( L1 - L0 ) / b_delta
 
 			# Shwo information.
 			print("Layer %d, n = %d, g0 = %e, g1 = %e, rel_diff = %e." % (k, j, grad_b[k][j][0], grad_b_app_single, (grad_b[k][j][0] - grad_b_app_single) / grad_b_app_single ))
@@ -316,41 +379,60 @@ def main():
 	"""The main function."""
 
 	# The learning rate.
-	alpha = 0.001
+	alpha = 0.0001
 
 	# Collection of parameters.
 
 	(wList, bList) = get_random_w_b(nNL, 0.2, -0.1, 0.1)
 
-	for i in range(nX):
-		# Feed forward.
-		x_input = np.array(dataX[i]).reshape(nNL[ 0], 1)
-		y_input = np.array(dataY[i]).reshape(nNL[-1], 1)
+	# Activation functons.
+	actFunc      = ReLU()
+	actFuncFinal = ReLU()
 
-		neList = FF(x_input, wList, bList)
+	learningLoops = 10
 
-		loss = loss_func(y_input, neList[-1])
+	for j in range(learningLoops):
+		print("========== LP = %d. ===============\n" % (j))
+		for i in range(nX):
+			# Feed forward.
+			x_input = np.array(dataX[i]).reshape(nNL[ 0], 1)
+			y_input = np.array(dataY[i]).reshape(nNL[-1], 1)
 
-		print("x = %e, y = %e, Y = %e, loss = %e" % (dataX[i], dataY[i], y_input, loss))
+			neList = FF(x_input, wList, bList, actFunc, actFuncFinal)
 
-		# Gradient calculation.
+			loss = loss_func(y_input, neList[-1])
 
-		(grad_w, grad_b, grad_x) = get_gradient(wList, bList, neList, y_input)
+			print("x = %e, y = %e, Y = %e, loss = %e" % (dataX[i], neList[-1][0][0], y_input, loss))
 
-		# Backscatter prapogation.
+			# Gradient calculation.
 
-		correct_by_gradient(wList, grad_w, alpha)
-		correct_by_gradient(bList, grad_b, alpha)
+			(grad_w, grad_b, grad_x) = get_gradient(wList, bList, neList, y_input, actFunc, actFuncFinal)
+
+			# Backscatter prapogation.
+
+			correct_by_gradient(wList, grad_w, alpha)
+			correct_by_gradient(bList, grad_b, alpha)
+
+	# Test.
+
+	x = np.array(0.5).reshape(nNL[ 0], 1)
+	Y = np.array(math.sin(0.5)).reshape(nNL[-1], 1)
+
+	yList = FF(x, wList, bList)
+
+	print("Test.")
+
+	print("y = %e, Y = %e.\n" % (yList[-1][0][0], Y[0][0]))
 
 if __name__ == '__main__':
 
 	# Run the main function.
 
-	main()
+	# main()
 
 	# Run the test.
 
-	# test_get_gradient()
+	test_get_gradient()
 
 		
 
