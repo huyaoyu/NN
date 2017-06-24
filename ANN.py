@@ -11,7 +11,7 @@ dataY = np.sin(dataX)
 
 nX = dataX.shape[0]
 
-nNL     = [1, 5, 5, 5, 1]  # Number of neurons per every hiden layer.
+nNL     = [1, 5, 10, 5, 1]  # Number of neurons per every hiden layer.
 
 class ANNEx(Exception):
 	"""Base exception class."""
@@ -59,7 +59,7 @@ class ReLU(ActivationFunc):
 	def derivative(self, y):
 		"""Derivative of ReLU."""
 
-		temp = np.empty_like(y) # All the values are zero.
+		temp = np.zeros_like(y) # All the values are zero.
 
 		temp[y > 0] = 1.0
 
@@ -410,7 +410,7 @@ def main():
 	actFunc      = ReLU()
 	actFuncFinal = Act_dummy()
 
-	learningLoops = 200
+	learningLoops = 500
 
 	for j in range(learningLoops):
 		print("========== LP = %d. ===============\n" % (j))
