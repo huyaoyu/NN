@@ -6,3 +6,4 @@ Doc/ANN/*.dvi
 Doc/ANN/*.log
 Doc/ANN/*.nlo
 Doc/ANN/*.pdf
+SimpleANN/__pycache__
