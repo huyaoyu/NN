@@ -3,6 +3,8 @@
 import numpy as np
 import math
 import copy
+import json
+import os
 
 def duplicate_list_of_numpy_elements(fList):
 	"""
@@ -169,7 +171,7 @@ class ANNEx(Exception):
 		self.typeStr = typeStr
 		self.message = message
 
-	def shwo_message(self):
+	def show_message(self):
 		"""
 		Show the message of the exception.
 		"""
@@ -185,6 +187,11 @@ class StateEx(ANNEx):
 	"""docstring for StateEx"""
 	def __init__(self, message):
 		super(StateEx, self).__init__("State exception", message)
+
+class IOEx(ANNEx):
+	"""docstring for IOEx"""
+	def __init__(self, message):
+		super(IOEx, self).__init__("IO exception", message)	
 		
 class ActivationFunc(object):
 	"""docstring for ActivationFunc"""
@@ -206,7 +213,7 @@ class ActivationFunc(object):
 class ReLU(ActivationFunc):
 	"""docstring for ReLU"""
 	def __init__(self):
-		super(ReLU, self).__init__("Sigmoid")
+		super(ReLU, self).__init__("ReLU")
 		
 		
 	def apply(self, g):
@@ -245,7 +252,7 @@ class Act_tanh(ActivationFunc):
 class Act_dummy(ActivationFunc):
 	"""docstring for Act_dummy"""
 	def __init__(self):
-		super(Act_dummy, self).__init__("Dummy")
+		super(Act_dummy, self).__init__("Act_dummy")
 
 	def apply(self, g):
 		"""Dummy function."""
@@ -259,7 +266,7 @@ class Act_dummy(ActivationFunc):
 
 class FCANN(object):
 	"""docstring for FCANN"""
-	def __init__(self, layerDesc, actFunc, actFuncFinal):
+	def __init__(self, layerDesc = [], actFunc = 0, actFuncFinal = 0):
 		super(FCANN, self).__init__()
 		self.layerDesc    = copy.deepcopy(layerDesc) # Layer description, a list describe number of neurals of each layer.
 		self.actFunc      = copy.deepcopy(actFunc)
@@ -272,6 +279,9 @@ class FCANN(object):
 		# Make default w and b for the FCANN.
 		self.wList = []
 		self.bList = []
+
+		# Name.
+		self.name = "fcann"
 
 	def apply(self, x):
 		"""
@@ -305,12 +315,154 @@ class FCANN(object):
 		Save this FCANN to the file system.
 		dirName is the name of the directory.
 		"""
+		# Test the validity of the path.
+		dirWithName = "%s/%s" % (dirName, self.name)
+
+		if not os.path.isdir(dirWithName):
+			os.makedirs(dirWithName)
+
+		# Save every w matrix to a single file.
+		i = 0
+
+		for w in self.wList:
+			# Make the full file name.
+			fn = "%s/w%02d" % (dirWithName, i)
+
+			np.save(fn, w)
+
+			i = i + 1
+
+		# Save every b vector to a single file.
+		i = 0
+		for b in self.bList:
+			fn = "%s/b%02d" % (dirWithName, i)
+
+			np.save(fn, b)
+
+			i = i + 1
+
+		# Save other member variables to json file.
+		fn = "%s/%s.json" % (dirWithName, "MemberVariables")
+		fp = open(fn, 'w')
+
+		# Single dictionary.
+		sd = { "name":self.name,\
+			   "layerDesc":self.layerDesc, "nLayers":self.nLayers,\
+			   "actFunc":self.actFunc.name, "actFuncFinal":self.actFuncFinal.name,\
+			   "trained":self.trained }
+
+		json.dump(sd, fp, indent = 0)
+
+		fp.close()
+
 
 	def load_from_file(self, dirName):
 		"""
 		Load a FCANN from the file system.
 		dirName is the name of the directory.
 		"""
+
+		# Check the validity of dirName
+
+		if not os.path.isdir(dirName):
+			str = "The specified dirName is not valid. dirName = %s" % (dirName)
+			raise IOEx(str)
+
+		# Load the member variables.
+
+		memberVariablesFileName = "%s/%s" % (dirName, "MemberVariables.json")
+
+		fp = open(memberVariablesFileName, 'r')
+
+		sd = json.load(fp)
+
+		fp.close()
+
+		self.parse_dictionary(sd)
+
+		# Member variables other than wList and bList are ready.
+
+		# Load w.
+		self.load_w(dirName)
+
+		# Load b.
+		self.load_b(dirName)
+
+
+	def parse_dictionary(self, sd):
+		"""Parse a dictionary. Assign values to the member variables."""
+
+		self.name      = copy.deepcopy(sd["name"])
+		self.layerDesc = copy.deepcopy(sd["layerDesc"])
+		self.nLayers   = sd["nLayers"]
+		self.trained   = sd["trained"]
+
+		actFuncName = sd["actFunc"]
+
+		self.assign_activation_function(actFuncName)
+
+		actFuncFinalName = sd["actFuncFinal"]
+
+		self.assign_activation_function(actFuncFinalName, actFuncType = "final")
+
+	def assign_activation_function(self, name, actFuncType = "normal"):
+		"""
+		Assign an activation object to a member variable.
+		actFuncType - could use "normal" or "final"
+		name - the name of the ativation function.
+		"""
+
+		if "ReLU" == name:
+			actFunc = ReLU()
+		elif "Act_tanh" == name:
+			actFunc = Act_tanh()
+		elif "Act_dummy" == name:
+			actFunc = Act_dummy()
+		else:
+			s = "No activation function with the name of %s" % (name)
+			raise IOEx(s)
+
+		if "normal" == actFuncType:
+			self.actFunc = actFunc
+		elif "final" == actFuncType:
+			self.actFuncFinal = actFunc
+		else:
+			s = "No activation function type of %s" % (actFuncType)
+			raise IOEx(s)
+
+	def load_w(self, dirName):
+		"""Load every w from path of dirName."""
+
+		# Check if dirName is valid.
+		if not os.path.isdir(dirName):
+			s = "Wrong dirName: " % (dirName)
+			raise IOEx(s)
+
+		self.wList = []
+
+		for i in range(self.nLayers - 1):
+			fn = "%s/w%02d.npy" % (dirName, i)
+
+			w = np.load(fn)
+
+			self.wList.append(w)
+
+	def load_b(self, dirName):
+		"""Load every b from path of dirName."""
+
+		# Check if dirName is valid.
+		if not os.path.isdir(dirName):
+			s = "Wrong dirName: " % (dirName)
+			raise IOEx(s)
+
+		self.bList = []
+
+		for i in range(self.nLayers - 1):
+			fn = "%s/b%02d.npy" % (dirName, i)
+
+			b = np.load(fn)
+
+			self.bList.append(b)
 
 	def make_random_w_b(self, wSpan, wStart, b):
 		"""
@@ -347,7 +499,9 @@ class FCANN(object):
 			self.wList.append(tempW)
 			self.bList.append(tempB)
 
-	def train(self, dataX, dataY, learningLoops, alpha, randomizeData = False, randomizeDataFixed = False, randomizeDataFixedSeed = 7.0):
+	def train(self, dataX, dataY, learningLoops, alpha,\
+		randomizeData = False, randomizeDataFixed = False, randomizeDataFixedSeed = 7.0,\
+		showFigure = False):
 		"""
 		Train the current FCANN.
 		dataX, dataY - the input training data, stored as NumPy array.
@@ -405,12 +559,13 @@ class FCANN(object):
 				correct_by_gradient(self.wList, grad_w, alpha)
 				correct_by_gradient(self.bList, grad_b, alpha)
 
-		import matplotlib.pyplot as plt
-		lossplot = np.array(lossplot)
-		lossplot = lossplot.reshape((-1,2))
-		lossplot = lossplot.mean(axis=1)
-		plt.plot(lossplot)
-		plt.show()
+		if True == showFigure:
+			import matplotlib.pyplot as plt
+			lossplot = np.array(lossplot)
+			lossplot = lossplot.reshape((-1,2))
+			lossplot = lossplot.mean(axis=1)
+			plt.plot(lossplot)
+			plt.show(block = False)
 
 		self.trained = 1
 

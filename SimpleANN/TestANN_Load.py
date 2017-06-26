@@ -9,23 +9,15 @@ import math
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-	dataX = np.linspace(0, 2*3.14, 1000)
-	dataY = np.sin(dataX)
+	fcann = ANN.FCANN()
 
-	nNL     = [1, 10, 10, 1]  # Number of neurons per every hiden layer.
+	pathName = "/home/yaoyu/SourceCodes/NN/SimpleANN/SavedANN/fcann"
 
-	actFunc      = ANN.ReLU()
-	actFuncFinal = ANN.Act_dummy()
-
-	fcann = ANN.FCANN(nNL, actFunc, actFuncFinal)
-
-	fcann.make_random_w_b(0.1, -0.05, 0.0001)
-
-	fcann.train(dataX, dataY, 500, 0.01, randomizeData = True, showFigure = True)
-
-	pathName = "/home/yaoyu/SourceCodes/NN/SimpleANN/SavedANN"
-
-	fcann.save_to_file(pathName)
+	try:
+		fcann.load_from_file(pathName)
+	except ANN.ANNEx as e:
+		e.show_message()
+		raise e
 
 	# Test.
 
