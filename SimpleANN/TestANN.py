@@ -21,7 +21,11 @@ if __name__ == "__main__":
 
 	fcann.make_random_w_b(0.1, -0.05, 0.0001)
 
-	fcann.train(dataX, dataY, 500, 0.01, randomizeData = True, showFigure = True)
+	lossFunc = ANN.SumOfSquares()
+
+	fcann.train(dataX, dataY, 500, 0.01,\
+		randomizeData = True, showFigure = True,\
+		lossFunc = lossFunc)
 
 	pathName = "/home/yaoyu/SourceCodes/NN/SimpleANN/SavedANN"
 

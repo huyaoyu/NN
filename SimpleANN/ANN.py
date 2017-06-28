@@ -84,7 +84,7 @@ def get_pLpg(pLpy, pypg):
 
 	return temp
 
-def get_gradient(wList, bList, yList, Y, actFunc, actFuncFinal):
+def get_gradient(wList, bList, yList, Y, actFunc, actFuncFinal, lossFunc):
 	"""
 	The number of pairs of neural networks is J.
 	wList, bList both have J elements.
@@ -108,7 +108,8 @@ def get_gradient(wList, bList, yList, Y, actFunc, actFuncFinal):
 	grad_b = []
 
 	# pLpy with j = J.
-	pLpy = yList[-1] - Y
+	# pLpy = yList[-1] - Y
+	pLpy = lossFunc.derivative(yList[-1], Y)
 
 	# Loop from J to 0.
 	for j in range(J, 0, -1):
@@ -161,6 +162,18 @@ def correct_by_gradient(mList, gradList, alpha):
 		m = m - alpha * g
 
 		mList[i] = m
+
+def Softmax(y):
+		"""
+		Normalied using Softmax method.
+		y and Y must be column vectors.
+		"""
+
+		expY = np.exp(y)
+
+		denominator = np.sum(expY)
+
+		return expY / denominator
 
 # ==================== Class definitions. ==========================
 
@@ -263,6 +276,70 @@ class Act_dummy(ActivationFunc):
 		"""Dummy function."""
 
 		return np.array(1.0).reshape(1, 1)
+
+class LossFunc(object):
+	"""docstring for LossFunc"""
+	def __init__(self, name):
+		super(LossFunc, self).__init__()
+		self.name = name
+		
+	def apply(self, y, Y):
+		"""Apply the loss function."""
+		pass
+
+	def derivative(self, y, Y):
+		"""Calculate the derivative of the loss function."""
+		pass
+
+class SumOfSquares(LossFunc):
+	"""docstring for SumOfSquares"""
+	def __init__(self):
+		super(SumOfSquares, self).__init__("SumOfSquares")
+		
+	def apply(self, y, Y):
+		"""Apply the loss function."""
+
+		diff = y - Y
+
+		dp = np.transpose(diff).dot(diff)
+
+		return 0.5 * dp, np.sqrt(dp)
+
+	def derivative(self, y, Y):
+		"""Calculate the derivative of the foss function."""
+
+		return y - Y
+
+class CrossEntropy(LossFunc):
+	"""docstring for SoftMax"""
+	def __init__(self):
+		super(CrossEntropy, self).__init__("CrossEntropy")
+
+		self.nY = 0 # Nomalized y.
+		self.applied = 0
+
+	def apply(self, y, Y):
+		"""
+		Apply the loss function.
+		y and Y must be column vectors.
+		"""
+
+		self.nY = Softmax(y)
+
+		self.applied = 1
+
+		return -1.0 * np.sum( Y * np.log(self.nY) )
+
+	def derivative(self, y, Y):
+		"""
+		Calculate the direvative of the loss function.
+		y and Y must be column vectors.
+		"""
+
+		if 1 != self.applied:
+			raise StateEx("Cross entropy loss function has not been applied.")
+
+		return self.nY - Y
 
 class FCANN(object):
 	"""docstring for FCANN"""
@@ -500,6 +577,7 @@ class FCANN(object):
 			self.bList.append(tempB)
 
 	def train(self, dataX, dataY, learningLoops, alpha,\
+		lossFunc,\
 		randomizeData = False, randomizeDataFixed = False, randomizeDataFixedSeed = 7.0,\
 		showFigure = False):
 		"""
@@ -552,7 +630,10 @@ class FCANN(object):
 
 				# Gradient calculation.
 
-				(grad_w, grad_b, grad_x) = get_gradient(self.wList, self.bList, neList, y_input, self.actFunc, self.actFuncFinal)
+				(grad_w, grad_b, grad_x) = get_gradient(\
+					self.wList, self.bList, neList, y_input,\
+					self.actFunc, self.actFuncFinal,\
+					lossFunc)
 
 				# Backscatter prapogation.
 
