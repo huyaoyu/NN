@@ -52,7 +52,9 @@ def show(image):
     ax.yaxis.set_ticks_position('left')
     pyplot.show()
 
-training_data = list(read())
-print(len(training_data))
-label,img = training_data[0]
-show(img)
+if __name__ == "__main__":
+    training_data = list(read())
+    print(len(training_data))
+    label,img = training_data[0]
+    show(img)
+    

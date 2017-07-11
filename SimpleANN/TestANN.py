@@ -9,7 +9,7 @@ import math
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-	dataX = np.linspace(0, 2*3.14, 1000)
+	dataX = np.linspace(0, 2*3.14, 1000).reshape(1000, 1)
 	dataY = np.sin(dataX)
 
 	nNL     = [1, 10, 10, 1]  # Number of neurons per every hiden layer.

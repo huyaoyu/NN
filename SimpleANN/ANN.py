@@ -109,7 +109,7 @@ def get_gradient(wList, bList, yList, Y, actFunc, actFuncFinal, lossFunc):
 
 	# pLpy with j = J.
 	# pLpy = yList[-1] - Y
-	pLpy = lossFunc.derivative(yList[-1], Y)
+	pLpy = lossFunc.derivative(Y, yList[-1])
 
 	# Loop from J to 0.
 	for j in range(J, 0, -1):
@@ -164,16 +164,16 @@ def correct_by_gradient(mList, gradList, alpha):
 		mList[i] = m
 
 def Softmax(y):
-		"""
-		Normalied using Softmax method.
-		y and Y must be column vectors.
-		"""
+	"""
+	Normalied using Softmax method.
+	y and Y must be column vectors.
+	"""
 
-		expY = np.exp(y)
+	expY = np.exp(y)
 
-		denominator = np.sum(expY)
+	denominator = np.sum(expY)
 
-		return expY / denominator
+	return expY / denominator
 
 # ==================== Class definitions. ==========================
 
@@ -275,7 +275,7 @@ class Act_dummy(ActivationFunc):
 	def derivative(self, y):
 		"""Dummy function."""
 
-		return np.array(1.0).reshape(1, 1)
+		return np.ones( (y.shape[0] , 1) )
 
 class LossFunc(object):
 	"""docstring for LossFunc"""
@@ -283,11 +283,11 @@ class LossFunc(object):
 		super(LossFunc, self).__init__()
 		self.name = name
 		
-	def apply(self, y, Y):
+	def apply(self, Y, y):
 		"""Apply the loss function."""
 		pass
 
-	def derivative(self, y, Y):
+	def derivative(self, Y, y):
 		"""Calculate the derivative of the loss function."""
 		pass
 
@@ -296,7 +296,7 @@ class SumOfSquares(LossFunc):
 	def __init__(self):
 		super(SumOfSquares, self).__init__("SumOfSquares")
 		
-	def apply(self, y, Y):
+	def apply(self, Y, y):
 		"""Apply the loss function."""
 
 		diff = y - Y
@@ -305,7 +305,7 @@ class SumOfSquares(LossFunc):
 
 		return 0.5 * dp, np.sqrt(dp)
 
-	def derivative(self, y, Y):
+	def derivative(self, Y, y):
 		"""Calculate the derivative of the foss function."""
 
 		return y - Y
@@ -318,7 +318,7 @@ class CrossEntropy(LossFunc):
 		self.nY = 0 # Nomalized y.
 		self.applied = 0
 
-	def apply(self, y, Y):
+	def apply(self, Y, y):
 		"""
 		Apply the loss function.
 		y and Y must be column vectors.
@@ -326,11 +326,15 @@ class CrossEntropy(LossFunc):
 
 		self.nY = Softmax(y)
 
+		diff = self.nY - Y
+
+		dp = np.transpose(diff).dot(diff)
+
 		self.applied = 1
 
-		return -1.0 * np.sum( Y * np.log(self.nY) )
+		return -1.0 * np.sum( Y * np.log(self.nY) ), np.sqrt(dp)
 
-	def derivative(self, y, Y):
+	def derivative(self, Y, y):
 		"""
 		Calculate the direvative of the loss function.
 		y and Y must be column vectors.
@@ -447,7 +451,7 @@ class FCANN(object):
 
 		# Load the member variables.
 
-		memberVariablesFileName = "%s/%s" % (dirName, "MemberVariables.json")
+		memberVariablesFileName = "%s%s" % (dirName, "MemberVariables.json")
 
 		fp = open(memberVariablesFileName, 'r')
 
@@ -590,7 +594,7 @@ class FCANN(object):
 		After the training is finished, the member variable trained will turn to 1.
 		"""
 
-		nX = dataX.shape[0]
+		nX = len(dataX)
 
 		# Collection of parameters.
 		# global display
@@ -601,30 +605,39 @@ class FCANN(object):
 		for j in range(learningLoops):
 			print("========== LP = %d. ===============\n" % (j))
 
-			randIdx = np.random.permutation(len(dataX))
-			dataX_r = dataX[randIdx]
-			dataY_r = dataY[randIdx]
+			if True == randomizeDataFixed:
+				randIdx = np.random.permutation(len(dataX))
+				dataX_r = dataX[randIdx]
+				dataY_r = dataY[randIdx]
+			else:
+				dataX_r = dataX
+				dataY_r = dataY
 
-			# dataX_r = dataX
-			# dataY_r = dataY
 			running_loss=0
 			for i in range(nX):
 				# if j==9 and i>700:
 				# 	display=True
 					# print '!!!'
 				# Feed forward.
-				x_input = np.array(dataX_r[i]).reshape(self.layerDesc[ 0], 1)
-				y_input = np.array(dataY_r[i]).reshape(self.layerDesc[-1], 1)
+				# x_input = np.array(dataX_r[i]).reshape(self.layerDesc[ 0], 1)
+				# y_input = np.array(dataY_r[i]).reshape(self.layerDesc[-1], 1)
+				x_input = dataX_r[i].reshape(self.layerDesc[ 0], 1)
+				y_input = dataY_r[i].reshape(self.layerDesc[-1], 1)
 
 				neList = FF(x_input, self.wList, self.bList, self.actFunc, self.actFuncFinal)
 
-				(loss, loss2) = loss_func(y_input, neList[-1])
+				# (loss, loss2) = loss_func(y_input, neList[-1])
+				(loss, loss2) = lossFunc.apply(y_input, neList[-1])
 
 				# print("LL %4d, No. %4d, x = %+e, y = %+e, Y = %+e, n_loss = %+e" % (j, i, dataX_r[i], neList[-1][0][0], y_input, loss / dataY_r[i]))
-				running_loss += loss2
+
+				if loss < 0.0:
+					raise StateEx("Loss less than zero.")
+
+				running_loss += loss
 				if i % 20 == 19:    # print every 20 mini-batches
-					print('[%d, %5d] loss: %.5f' %
-					(j + 1, i + 1, running_loss / 20))
+					print('[%d, %5d] loss: %+.5f, loss2: %+.5f' %
+					(j + 1, i + 1, running_loss / 20, loss2))
 					lossplot.append(running_loss / 20)
 					running_loss = 0.0
 
