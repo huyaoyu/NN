@@ -1,3 +1,23 @@
+
+# Description
+# ===========
+#
+# Simple implementation of fully connected artificial neural networks (FCANN).
+#
+# The activation functions: ReLU, tanh, and dummy.
+# The loss functions: sum of squares, cross entropy (with Softmax).
+#
+# Author
+# ======
+#
+# Yaoyu Hu <huyaoyu@sjtu.edu.cn>
+#
+# Date
+# ====
+#
+# Created: 2017-07-11
+#
+
 # Imports.
 
 import numpy as np
@@ -64,7 +84,7 @@ def get_pypg(y, actFunc):
 
 def get_pypg_final(y, actFunc):
 	"""
-	Calculate partial y / partial g for the final ouput.
+	Calculate partial y / partial g for the final output.
 	"""
 
 	return actFunc.derivative(y)
@@ -78,8 +98,8 @@ def get_pLpg(pLpy, pypg):
 		print("pLpg: Dimensions of pLpy and pypg do not match.\npLpy.shape[0] = %d, pypg.shape[0] = %d\n" % ( pLpy.shape[0], pypg.shape[0] ) )
 		raise ANNEx("Argument error.")
 	# if display:
-	# 	print '  -- pLpy: ', pLpy.T
-	# 	print '  -- pypg: ', pypg.T
+	# 	print('-- pLpy: ' % (pLpy.T) )
+	# 	print('-- pypg: ' % (pypg.T) )
 	temp = pLpy * pypg
 
 	return temp
@@ -102,13 +122,12 @@ def get_gradient(wList, bList, yList, Y, actFunc, actFuncFinal, lossFunc):
 		print("Dimensions of wList, bList and yList do not math.\nJ = %d, J_b = %b, J_y = %d" % (J, J_b, J_y))
 		raise ANNEx("Argument error.")
 
-	# The empty graient list.
+	# The empty gradient list.
 	grad_x = [] # This will have an extra element than grad_w and grrad_b.
 	grad_w = []
 	grad_b = []
 
 	# pLpy with j = J.
-	# pLpy = yList[-1] - Y
 	pLpy = lossFunc.derivative(Y, yList[-1])
 
 	# Loop from J to 0.
@@ -165,7 +184,7 @@ def correct_by_gradient(mList, gradList, alpha):
 
 def Softmax(y):
 	"""
-	Normalied using Softmax method.
+	Normalized using Softmax method.
 	y and Y must be column vectors.
 	"""
 
@@ -306,7 +325,7 @@ class SumOfSquares(LossFunc):
 		return 0.5 * dp, np.sqrt(dp)
 
 	def derivative(self, Y, y):
-		"""Calculate the derivative of the foss function."""
+		"""Calculate the derivative of the loss function."""
 
 		return y - Y
 
@@ -315,7 +334,7 @@ class CrossEntropy(LossFunc):
 	def __init__(self):
 		super(CrossEntropy, self).__init__("CrossEntropy")
 
-		self.nY = 0 # Nomalized y.
+		self.nY = 0 # Normalized y.
 		self.applied = 0
 
 	def apply(self, Y, y):
@@ -336,7 +355,7 @@ class CrossEntropy(LossFunc):
 
 	def derivative(self, Y, y):
 		"""
-		Calculate the direvative of the loss function.
+		Calculate the derivative of the loss function.
 		y and Y must be column vectors.
 		"""
 
@@ -490,7 +509,7 @@ class FCANN(object):
 		"""
 		Assign an activation object to a member variable.
 		actFuncType - could use "normal" or "final"
-		name - the name of the ativation function.
+		name - the name of the activation function.
 		"""
 
 		if "ReLU" == name:
@@ -617,16 +636,14 @@ class FCANN(object):
 			for i in range(nX):
 				# if j==9 and i>700:
 				# 	display=True
-					# print '!!!'
+					# print('!!!')
 				# Feed forward.
-				# x_input = np.array(dataX_r[i]).reshape(self.layerDesc[ 0], 1)
-				# y_input = np.array(dataY_r[i]).reshape(self.layerDesc[-1], 1)
+
 				x_input = dataX_r[i].reshape(self.layerDesc[ 0], 1)
 				y_input = dataY_r[i].reshape(self.layerDesc[-1], 1)
 
 				neList = FF(x_input, self.wList, self.bList, self.actFunc, self.actFuncFinal)
 
-				# (loss, loss2) = loss_func(y_input, neList[-1])
 				(loss, loss2) = lossFunc.apply(y_input, neList[-1])
 
 				# print("LL %4d, No. %4d, x = %+e, y = %+e, Y = %+e, n_loss = %+e" % (j, i, dataX_r[i], neList[-1][0][0], y_input, loss / dataY_r[i]))
@@ -648,11 +665,12 @@ class FCANN(object):
 					self.actFunc, self.actFuncFinal,\
 					lossFunc)
 
-				# Backscatter prapogation.
+				# Backscatter propagation.
 
 				correct_by_gradient(self.wList, grad_w, alpha)
 				correct_by_gradient(self.bList, grad_b, alpha)
 
+		# The figure will be shown if this is run in a python shell.
 		if True == showFigure:
 			import matplotlib.pyplot as plt
 			lossplot = np.array(lossplot)

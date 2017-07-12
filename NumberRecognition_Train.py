@@ -1,14 +1,35 @@
 
-# imports
+# Description
+# ===========
+#
+# This is the script for training the trained FCANN for number recognition.
+#
+# Author
+# ======
+#
+# Yaoyu Hu <huyaoyu@sjtu.edu.cn>
+#
+# Date
+# ====
+#
+# Created: 2017-07-11
+#
+
+# =============== Imports. =================
+
+# Python specific modules
 import importlib
 
-from SimpleANN import ANN
-
+# Tools.
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 
+# Project specific modules.
+from SimpleANN import ANN
 from TrainingNN import mnist
+
+# =========== File-wide variables. ==================
 
 y0 = np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0]).reshape(10, 1)
 y1 = np.array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0]).reshape(10, 1)
@@ -20,6 +41,8 @@ y6 = np.array([0, 0, 0, 0, 0, 0, 1, 0, 0, 0]).reshape(10, 1)
 y7 = np.array([0, 0, 0, 0, 0, 0, 0, 1, 0, 0]).reshape(10, 1)
 y8 = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0]).reshape(10, 1)
 y9 = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1]).reshape(10, 1)
+
+# ================= Functions. =====================
 
 def interpret(y):
 	"""Interpret y into a numpy ndarray."""
@@ -47,17 +70,20 @@ def interpret(y):
 
 	return r
 
+# ========== Self test. ================
+
 if __name__ == "__main__":
 	# Obtain the training data.
 	training_data = list(mnist.read(path = "./TrainingNN/"))
 	
 	nTD = len(training_data)
 
+	# Organize the training data.
 	TD_x = []
 	TD_y = []
 
 	for td in training_data:
-		TD_x.append(td[1] / 255)
+		TD_x.append(td[1] / 255)      # Normalize.
 		TD_y.append(interpret(td[0]))
 
 	dimInput  = TD_x[0].shape[0] * TD_x[0].shape[1]
@@ -65,11 +91,11 @@ if __name__ == "__main__":
 
 	print("nTD = %d, dimInput = %d, dimOutput = %d.\n" % (nTD, dimInput, dimOutput))
 
+	# Define the ANN.
+
 	nNL     = [dimInput, 100, 100, dimOutput]  # Number of neurons per every hidden layer.
 
 	actFunc      = ANN.ReLU()
-	# actFuncFinal = ANN.ReLU()
-	# actFunc      = ANN.Act_dummy()
 	actFuncFinal = ANN.Act_dummy()
 
 	fcann = ANN.FCANN(nNL, actFunc, actFuncFinal)
@@ -77,12 +103,16 @@ if __name__ == "__main__":
 
 	fcann.make_random_w_b(0.01, 0.0, 0.001)
 
+	# Train the ANN.
+
 	# lossFunc = ANN.SumOfSquares()
 	lossFunc = ANN.CrossEntropy()
 
 	fcann.train(TD_x, TD_y, 2, 0.01,\
 		randomizeData = False, showFigure = True,\
 		lossFunc = lossFunc)
+
+	# Save the trained ANN.
 
 	pathName = "/home/yaoyu/SourceCodes/NN/SavedANN/"
 
