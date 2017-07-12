@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
 	# Read the trained ANN.
 
-	pathName = "/home/yaoyu/SourceCodes/NN/SavedANN/NumberRecognition/"
+	pathName = "/home/yaoyu/SourceCodes/NN/SavedANN/NumberRecognition2/"
 
 	fcann = ANN.FCANN()
 
@@ -146,3 +146,20 @@ if __name__ == "__main__":
 
 	# The final benchmark.
 	print("accOK = %d, accWrong = %d, ratio = %.2f" % (accOK, accWrong, accOK/nTD))
+
+	# # Additional test.
+
+	# # Load the hand-written number from a txt file.
+	# hw = np.genfromtxt("./TrainingNN/3.txt", delimiter = "\t")
+
+	# hw[hw > 100] = 255
+
+	# y = fcann.apply(hw.reshape(dimInput, 1))
+	# sy = ANN.Softmax(y)
+	# numberY_pred = sy.argmax()
+
+	# print_nomarlized_vector(sy)
+	# print("numberY_pred = %d." % (numberY_pred))
+
+	# mnist.show(hw)
+

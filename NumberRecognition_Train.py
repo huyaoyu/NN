@@ -96,10 +96,11 @@ if __name__ == "__main__":
 	nNL     = [dimInput, 100, 100, dimOutput]  # Number of neurons per every hidden layer.
 
 	actFunc      = ANN.ReLU()
-	actFuncFinal = ANN.Act_dummy()
+	# actFuncFinal = ANN.Act_dummy()
+	actFuncFinal = ANN.ReLU()
 
 	fcann = ANN.FCANN(nNL, actFunc, actFuncFinal)
-	fcann.name = "NumberRecognition"
+	fcann.name = "NumberRecognition2"
 
 	fcann.make_random_w_b(0.01, 0.0, 0.001)
 

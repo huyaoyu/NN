@@ -651,7 +651,7 @@ class FCANN(object):
 				if loss < 0.0:
 					raise StateEx("Loss less than zero.")
 
-				running_loss += loss[0]
+				running_loss += loss
 				if i % 20 == 19:    # print every 20 mini-batches
 					print('[%d, %5d] loss: %+.5f, loss2: %+.5f' %
 					(j + 1, i + 1, running_loss / 20, loss2))

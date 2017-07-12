@@ -38,12 +38,14 @@ def read(dataset = "training", path = "."):
     for i in range(len(lbl)):
         yield get_img(i)
 
+from matplotlib import pyplot
+import matplotlib as mpl
+
 def show(image):
     """
     Render a given numpy.uint8 2D array of pixel data.
     """
-    from matplotlib import pyplot
-    import matplotlib as mpl
+
     fig = pyplot.figure()
     ax = fig.add_subplot(1,1,1)
     imgplot = ax.imshow(image, cmap=mpl.cm.Greys)
@@ -52,9 +54,44 @@ def show(image):
     ax.yaxis.set_ticks_position('left')
     pyplot.show()
 
+def ax_plot(ax, image):
+    """Plot img with an axis handle."""
+
+    imgplot = ax.imshow(image, cmap=mpl.cm.Greys)
+    imgplot.set_interpolation('nearest')
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+
+def show_ten(imagList):
+    """Plot ten image on a figure."""
+
+    nImages = len(imagList)
+
+    if 10 != nImages:
+        print("Wrong number of elements in list imagList.")
+        return
+
+    fig = pyplot.figure()
+
+    for i in range(10):
+        ax = fig.add_subplot(2, 5, i+1)
+        ax_plot(ax, imagList[i])
+
+    pyplot.show()
+
+
 if __name__ == "__main__":
-    training_data = list(read())
+    training_data = list(read(dataset = "training"))
     print(len(training_data))
     label,img = training_data[0]
-    show(img)
+    print("label = %d" % (label))
+
+    # for i in range(20):
+    #     label,imgt = training_data[i]
+    #     print("i = %d, label = %d." % (i, label))
+
+    idx = [ 1, 3, 5, 7, 2, 0, 13, 15, 17, 4 ]
+    imagList = [training_data[i][1] for i in idx]
+
+    show_ten(imagList)
     
