@@ -624,8 +624,8 @@ class FCANN(object):
 		for j in range(learningLoops):
 			print("========== LP = %d. ===============\n" % (j))
 
-			if True == randomizeDataFixed:
-				randIdx = np.random.permutation(len(dataX))
+			if True == randomizeData:
+				randIdx = np.random.permutation(nX)
 				dataX_r = dataX[randIdx]
 				dataY_r = dataY[randIdx]
 			else:
@@ -651,7 +651,7 @@ class FCANN(object):
 				if loss < 0.0:
 					raise StateEx("Loss less than zero.")
 
-				running_loss += loss
+				running_loss += loss[0]
 				if i % 20 == 19:    # print every 20 mini-batches
 					print('[%d, %5d] loss: %+.5f, loss2: %+.5f' %
 					(j + 1, i + 1, running_loss / 20, loss2))
@@ -674,10 +674,15 @@ class FCANN(object):
 		if True == showFigure:
 			import matplotlib.pyplot as plt
 			lossplot = np.array(lossplot)
-			lossplot = lossplot.reshape((-1,2))
-			lossplot = lossplot.mean(axis=1)
-			plt.plot(lossplot)
-			plt.show(block = False)
+			trainingPointNumber = np.arange(0, learningLoops * nX, 20)
+
+			Fig = plt.figure()
+			Ax  = Fig.add_subplot(111)
+			Ax.plot(trainingPointNumber, lossplot)
+			Ax.set_xlabel("training points")
+			Ax.set_ylabel("loss")
+			Ax.set_title("Training loss")
+			Fig.show()
 
 		self.trained = 1
 

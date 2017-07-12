@@ -12,7 +12,7 @@ if __name__ == "__main__":
 	dataX = np.linspace(0, 2*3.14, 1000).reshape(1000, 1)
 	dataY = np.sin(dataX)
 
-	nNL     = [1, 10, 10, 1]  # Number of neurons per every hiden layer.
+	nNL     = [1, 10, 10, 1]  # Number of neurons per every hidden layer.
 
 	actFunc      = ANN.ReLU()
 	actFuncFinal = ANN.Act_dummy()
@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
 	lossFunc = ANN.SumOfSquares()
 
-	fcann.train(dataX, dataY, 500, 0.01,\
+	fcann.train(dataX, dataY, 200, 0.02,\
 		randomizeData = True, showFigure = True,\
 		lossFunc = lossFunc)
 
@@ -60,4 +60,7 @@ if __name__ == "__main__":
 	lineOriginal,  = ax.plot(dataX, dataY, 'b', label = "original")
 	linePredicted, = ax.plot(dataX, yArray, 'r', label = "predicted")
 	ax.legend(loc = "upper right")
+	ax.set_xlabel("input")
+	ax.set_ylabel("output")
+	ax.set_title("Test FCANN")
 	plt.show()
