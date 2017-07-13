@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
 	# Read the trained ANN.
 
-	pathName = "/home/yaoyu/SourceCodes/NN/SavedANN/NumberRecognition2/"
+	pathName = "/home/yaoyu/SourceCodes/NN/SavedANN/NumberRecognition/"
 
 	fcann = ANN.FCANN()
 
@@ -152,9 +152,9 @@ if __name__ == "__main__":
 	# # Load the hand-written number from a txt file.
 	# hw = np.genfromtxt("./TrainingNN/3.txt", delimiter = "\t")
 
-	# hw[hw > 100] = 255
+	# # hw[hw > 100] = 255
 
-	# y = fcann.apply(hw.reshape(dimInput, 1))
+	# y = fcann.apply(hw.reshape(dimInput, 1) / 255)
 	# sy = ANN.Softmax(y)
 	# numberY_pred = sy.argmax()
 
