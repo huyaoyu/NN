@@ -19,8 +19,6 @@ import torch.optim as optim
 
 # =========== File-wide variables. ==================
 
-# savePath = './SavedCNN/CNNNet.torch'
-# savePath = './SavedCNN/CNNNet_Adam.torch'
 savePathBase = './SavedCNN'
 
 y0 = np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype = float).reshape(10, 1)
@@ -33,17 +31,6 @@ y6 = np.array([0, 0, 0, 0, 0, 0, 1, 0, 0, 0], dtype = float).reshape(10, 1)
 y7 = np.array([0, 0, 0, 0, 0, 0, 0, 1, 0, 0], dtype = float).reshape(10, 1)
 y8 = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0], dtype = float).reshape(10, 1)
 y9 = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1], dtype = float).reshape(10, 1)
-
-# y0 = Variable( torch.Tensor(y0) )
-# y1 = Variable( torch.Tensor(y1) )
-# y2 = Variable( torch.Tensor(y2) )
-# y3 = Variable( torch.Tensor(y3) )
-# y4 = Variable( torch.Tensor(y4) )
-# y5 = Variable( torch.Tensor(y5) )
-# y6 = Variable( torch.Tensor(y6) )
-# y7 = Variable( torch.Tensor(y7) )
-# y8 = Variable( torch.Tensor(y8) )
-# y9 = Variable( torch.Tensor(y9) )
 
 # ================= Functions. =====================
 
@@ -126,7 +113,6 @@ if __name__ == '__main__':
 	TD_x, TD_y = transfer_mnist_to_lists(training_data, 255)
 	TT_x, TT_y = transfer_mnist_to_lists(testing_data,  255)
 
-	# spec = [6, 16, 120, 84]
 	spec = [24, 64, 240, 168]
 
 	net = Net(spec)
